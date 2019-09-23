@@ -21,7 +21,7 @@ public class CVRP {
         String[] distanciasString;
 
         try {
-            BufferedReader br = new BufferedReader(new FileReader("P-n51-k10.txt"));
+            BufferedReader br = new BufferedReader(new FileReader("P-n55-k7.txt"));
             linha = br.readLine();
             while (!linha.contentEquals("DEMAND_SECTION:")) {
                 entradas = linha.split(" ");
@@ -188,13 +188,13 @@ public class CVRP {
     }
 
     static public int Movimentos(Veiculo[] carros) {
-        int custoMeio = 0, custoIF = 0, custoER = 0;
+        int custoMeio = 0, custoIF = 0, custoSP = 0;
         int tamanhoRota = 0;
-        int auxTroca1Meio = 0, auxTroca2Meio = 0, auxTroca1IF = 0, auxTroca2IF = 0, auxTroca1ER = 1, auxTroca2ER = 1;
+        int auxTroca1Meio = 0, auxTroca2Meio = 0, auxTroca1IF = 0, auxTroca2IF = 0, auxTroca1SP = 0, auxTroca2SP = 0;
         
         Veiculo[] trocaMeio = carros.clone();
         Veiculo[] trocaInicialFinal = carros.clone();
-        Veiculo[] trocaEntreRotas = carros.clone();
+        Veiculo[] trocaSegundoPenult = carros.clone();
         
         //troca as rotas de todos os carros
         for (int i = 0; i < carros.length; i++) {
@@ -211,6 +211,9 @@ public class CVRP {
                 }
                 auxTroca1IF = 1;
                 auxTroca2IF = tamanhoRota - 2;
+                auxTroca1SP = 2;
+                auxTroca2SP = tamanhoRota - 3;
+                
                 // troca Meio
                 No noTroca1Meio = new No(trocaMeio[i].getCaminho().get(auxTroca1Meio).getID(), trocaMeio[i].getCaminho().get(auxTroca1Meio).getDemanda());
                 No noTroca2Meio = new No(trocaMeio[i].getCaminho().get(auxTroca2Meio).getID(), trocaMeio[i].getCaminho().get(auxTroca2Meio).getDemanda());
@@ -225,23 +228,23 @@ public class CVRP {
                 trocaInicialFinal[i].getCaminho().set(auxTroca2IF, noTroca1IF);
                 custoIF += calculaCusto(trocaInicialFinal[i].getCaminho());
                 
-                
-                if (i + 1 <= (carros.length - 1)) {
-                // troca Inverte entre rotas
-                No noTroca1ER = new No(trocaEntreRotas[i].getCaminho().get(auxTroca1ER).getID(), trocaEntreRotas[i].getCaminho().get(auxTroca1ER).getDemanda());
-                No noTroca2ER = new No(trocaEntreRotas[i + 1].getCaminho().get(auxTroca2ER).getID(), trocaEntreRotas[i + 1].getCaminho().get(auxTroca2ER).getDemanda());
-                trocaEntreRotas[i].getCaminho().set(auxTroca1ER, noTroca2ER);
-                trocaEntreRotas[i + 1].getCaminho().set(auxTroca2ER, noTroca1ER);
-                custoER += calculaCusto(trocaEntreRotas[i].getCaminho());
-                }
+                // troca Segundo -> Penúltimo
+                No noTroca1SP = new No(trocaSegundoPenult[i].getCaminho().get(auxTroca1SP).getID(), trocaSegundoPenult[i].getCaminho().get(auxTroca1SP).getDemanda());
+                No noTroca2SP = new No(trocaSegundoPenult[i].getCaminho().get(auxTroca2SP).getID(), trocaSegundoPenult[i].getCaminho().get(auxTroca2SP).getDemanda());
+                trocaSegundoPenult[i].getCaminho().set(auxTroca1SP, noTroca2SP);
+                trocaSegundoPenult[i].getCaminho().set(auxTroca2SP, noTroca1SP);
+                custoSP += calculaCusto(trocaSegundoPenult[i].getCaminho());
+
             }
         }
         if(custoMeio < custoFinal){
+            System.out.println("meio");
             return custoMeio;
         }else if(custoIF < custoFinal){
+            System.out.println("IF");
             return custoIF;
-        }else if(custoER < custoFinal){
-            return custoER;
+        }else if(custoSP < custoFinal){
+            System.out.println("SP");
         }
         return custoFinal;
     }

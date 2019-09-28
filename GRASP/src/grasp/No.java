@@ -1,6 +1,9 @@
-
-package cvrp;
-
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package grasp;
 
 public class No {
     private int ID;
@@ -33,4 +36,11 @@ public class No {
         this.visitado = visitado;
     }
     
+    public No clone(){
+        No clonado = new No(this.getID(), this.getDemanda());
+        clonado.setVisitado(this.isVisitado());
+        return clonado;
+    }
+    
 }
+

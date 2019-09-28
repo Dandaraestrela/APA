@@ -16,12 +16,15 @@ public class CVRP {
     static private int custoFinal;
 
     public static void main(String[] args) {
+        long tempoInicio = System.currentTimeMillis();
+
         String linha = "";
         String[] entradas = new String[2];
         String[] distanciasString;
 
+        // lendo os dados e adicionando aos nossos campos
         try {
-            BufferedReader br = new BufferedReader(new FileReader("P-n55-k7.txt"));
+            BufferedReader br = new BufferedReader(new FileReader("P-n19-k2.txt"));
             linha = br.readLine();
             while (!linha.contentEquals("DEMAND_SECTION:")) {
                 entradas = linha.split(" ");
@@ -82,17 +85,14 @@ public class CVRP {
         }
         custoFinal = guloso();
         System.out.println("Custo final do algoritmo guloso = " + custoFinal);
-        
+
         int custoAux2 = VND(veiculos);
         int custoAux1 = Movimentos(veiculos);
-        
-        if(custoFinal > custoAux1 || custoFinal > custoAux2){
-            if(custoAux1 < custoAux2){
-                System.out.println("Custo após movimentos = " + custoAux1);
-            }else{
-                System.out.println("Custo após movimentos = " + custoAux2);
-            }
-        }
+
+        System.out.println("Custo após movimentos = " + custoAux1);
+
+        System.out.println("Custo após movimentos VND = " + custoAux2);
+        System.out.println("Tempo Total em miliSegundos: " + (System.currentTimeMillis() - tempoInicio));
     }
 
     static public int guloso() {
@@ -101,6 +101,7 @@ public class CVRP {
         int auxSobrou = numClientes;
 
         while (existeNaoVisitado()) {
+
             int indiceEscolhido = 0;
             No escolhido = null;
 
@@ -113,6 +114,7 @@ public class CVRP {
             }
 
             for (int i = 0; i < numClientes; i++) {
+                // escolhe o com menor custo
                 if (!nos[i].isVisitado()) {
                     if (veiculos[veiculoAtual].getCargaAtual() >= nos[i].getDemanda()) {
                         custoVisitado = distancias[veiculos[veiculoAtual].getLocAtual()][i];
@@ -134,7 +136,6 @@ public class CVRP {
                 veiculos[veiculoAtual].setLocAtual(escolhido.getID());
 
                 nos[indiceEscolhido].setVisitado(true);
-                // APAGARRRR System.out.println("o escolhido é " + indiceEscolhido + "e " + nos[indiceEscolhido].isVisitado());
                 finalCusto += custoMin;
                 auxSobrou--;
             } else {
@@ -149,13 +150,6 @@ public class CVRP {
                     veiculoAtual += 1;
                 } else {
                     System.out.println("Não há solução.");
-                    /* System.out.println("sobraram: " + auxSobrou);
-                    for (int k = 0; k < numClientes; k++) {
-                        if (!nos[k].isVisitado()) {
-                            System.out.println("demanda era: " + nos[k].getDemanda());
-                        }
-                    }
-                    */
                     System.exit(0);
                 }
             }
@@ -191,11 +185,11 @@ public class CVRP {
         int custoMeio = 0, custoIF = 0, custoSP = 0;
         int tamanhoRota = 0;
         int auxTroca1Meio = 0, auxTroca2Meio = 0, auxTroca1IF = 0, auxTroca2IF = 0, auxTroca1SP = 0, auxTroca2SP = 0;
-        
+
         Veiculo[] trocaMeio = carros.clone();
         Veiculo[] trocaInicialFinal = carros.clone();
         Veiculo[] trocaSegundoPenult = carros.clone();
-        
+
         //troca as rotas de todos os carros
         for (int i = 0; i < carros.length; i++) {
             tamanhoRota = carros[i].getCaminho().size();
@@ -213,7 +207,7 @@ public class CVRP {
                 auxTroca2IF = tamanhoRota - 2;
                 auxTroca1SP = 2;
                 auxTroca2SP = tamanhoRota - 3;
-                
+
                 // troca Meio
                 No noTroca1Meio = new No(trocaMeio[i].getCaminho().get(auxTroca1Meio).getID(), trocaMeio[i].getCaminho().get(auxTroca1Meio).getDemanda());
                 No noTroca2Meio = new No(trocaMeio[i].getCaminho().get(auxTroca2Meio).getID(), trocaMeio[i].getCaminho().get(auxTroca2Meio).getDemanda());
@@ -227,7 +221,7 @@ public class CVRP {
                 trocaInicialFinal[i].getCaminho().set(auxTroca1IF, noTroca2IF);
                 trocaInicialFinal[i].getCaminho().set(auxTroca2IF, noTroca1IF);
                 custoIF += calculaCusto(trocaInicialFinal[i].getCaminho());
-                
+
                 // troca Segundo -> Penúltimo
                 No noTroca1SP = new No(trocaSegundoPenult[i].getCaminho().get(auxTroca1SP).getID(), trocaSegundoPenult[i].getCaminho().get(auxTroca1SP).getDemanda());
                 No noTroca2SP = new No(trocaSegundoPenult[i].getCaminho().get(auxTroca2SP).getID(), trocaSegundoPenult[i].getCaminho().get(auxTroca2SP).getDemanda());
@@ -237,49 +231,47 @@ public class CVRP {
 
             }
         }
-        if(custoMeio < custoFinal){
+        if (custoMeio < custoFinal) {
             System.out.println("meio");
             return custoMeio;
-        }else if(custoIF < custoFinal){
+        } else if (custoIF < custoFinal) {
             System.out.println("IF");
             return custoIF;
-        }else if(custoSP < custoFinal){
+        } else if (custoSP < custoFinal) {
             System.out.println("SP");
         }
         return custoFinal;
     }
-    
-    static public int VND(Veiculo[] carros){
+
+    static public int VND(Veiculo[] carros) {
         int numCarros = carros.length, tamanhoRota;
         int custoEncontrado = 0;
         Veiculo[] funcional = carros.clone();
 
-        for(int i = 0; i < numCarros; i++){
+        for (int i = 0; i < numCarros; i++) {
             tamanhoRota = funcional[i].getCaminho().size();
-            
+
             // p cada nó da rota desconsiderando o primeiro e último (depósito)
-            for(int j = 1; j < tamanhoRota - 1; j++){
-            // aqui pega o "primeiro"
-            No auxNo1 = new No(funcional[i].getCaminho().get(j).getID(), funcional[i].getCaminho().get(j).getDemanda());
-            // aqui pega o "segundo"
-            No auxNo2 = new No(funcional[i].getCaminho().get(j+1).getID(), funcional[i].getCaminho().get(j+1).getDemanda());
-            
-            int custoAntes = calculaCusto(carros[i].getCaminho());
-            funcional[i].getCaminho().set(j, auxNo2);
-            funcional[i].getCaminho().set(j+1, auxNo1);
-            int custoDepois = calculaCusto(funcional[i].getCaminho());
-            
-            // se custo depois de inverter for melhor deixa, se não troca
-            // VND
-            if(custoDepois > custoAntes){
-                funcional[i].getCaminho().set(j, auxNo1);
-                funcional[i].getCaminho().set(j+1, auxNo2);
-              }
+            for (int j = 1; j < tamanhoRota - 1; j++) {
+                // aqui pega o "primeiro"
+                No auxNo1 = new No(funcional[i].getCaminho().get(j).getID(), funcional[i].getCaminho().get(j).getDemanda());
+                // aqui pega o "segundo"
+                No auxNo2 = new No(funcional[i].getCaminho().get(j + 1).getID(), funcional[i].getCaminho().get(j + 1).getDemanda());
+
+                int custoAntes = calculaCusto(carros[i].getCaminho());
+                funcional[i].getCaminho().set(j, auxNo2);
+                funcional[i].getCaminho().set(j + 1, auxNo1);
+                int custoDepois = calculaCusto(funcional[i].getCaminho());
+
+                // se custo depois de inverter for melhor deixa, se não troca
+                // VND
+                if (custoDepois > custoAntes) {
+                    funcional[i].getCaminho().set(j, auxNo1);
+                    funcional[i].getCaminho().set(j + 1, auxNo2);
+                }
             }
             custoEncontrado += calculaCusto(funcional[i].getCaminho());
         }
         return custoEncontrado;
     }
 }
-
-
